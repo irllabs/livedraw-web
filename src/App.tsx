@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from 'three';
 import Stats from 'stats.js';
-import * as dat from 'dat.gui';
 
 import createLivedrawMaterial from './util/create-livedraw-material';
-import LayerPanel from "./app/components/layer-panel";
 import LayerData from "./app/models/layer-data";
+import LiveFeed from "./app/components/live-feed/live-feed";
+import LayerProperties from "./app/components/layer-properties/layer-properties";
 
 var stats1 = new Stats();
 stats1.showPanel(0); // Panel 0 = fps
@@ -26,20 +26,10 @@ const shaderValues = {
 	opacity: 1,
 }
 
-const gui = new dat.GUI({autoPlace: false});
-gui.domElement.style.cssText = 'position:absolute;bottom:20px;right:0px;'
-gui.add(shaderValues, 'thresh', 0, 1);
-gui.add(shaderValues, 'softness', 0, 1);
-gui.add(shaderValues, 'invert', 0, 1);
-gui.add(shaderValues, 'opacity', 0, 1);
-
-// const capturedFrames: THREE.DataTexture[] = [];
-
 function App() {
-	const video = useRef<HTMLVideoElement>();
 	const canvas = useRef<HTMLCanvasElement>();
 	const statsRef = useRef<HTMLDivElement>();
-	
+
 	const currentTime = useRef<number>(0);
 	const previousFrameTime = useRef<number>(0);
 	const elapsedTime = useRef<number>(0);
@@ -51,75 +41,28 @@ function App() {
 	const renderTarget = useRef<THREE.WebGLRenderTarget>();
 	const finalScene = useRef<THREE.Scene>();
 	const planeFinal = useRef<THREE.Mesh>();
-	
-	const [aspectRatio, setAspectRatio] = useState(1);
-	const [layers] = useState<LayerData[]>([{
-		name: 'layer-1',
-		frames: [],
-		recording: false,
-		playing: false,
-		playbackDirection: 1,
-		currentFrame: 0
-	}, {
-		name: 'layer-2',
-		frames: [],
-		recording: false,
-		playing: false,
-		playbackDirection: 1,
-		currentFrame: 0
-	}, {
-		name: 'layer-3',
-		frames: [],
-		recording: false,
-		playing: false,
-		playbackDirection: 1,
-		currentFrame: 0
-	}, {
-		name: 'layer-4',
-		frames: [],
-		recording: false,
-		playing: false,
-		playbackDirection: 1,
-		currentFrame: 0
-	}, {
-		name: 'layer-5',
-		frames: [],
-		recording: false,
-		playing: false,
-		playbackDirection: 1,
-		currentFrame: 0
-	}]);
+
+	const [layers] = useState<LayerData[]>([
+		new LayerData('layer-1'),
+		new LayerData('layer-2'),
+		new LayerData('layer-3'),
+		new LayerData('layer-4'),
+		new LayerData('layer-5'),
+		new LayerData('live-feed', true),
+	]);
+	const [videoElement, setVideoElement] = useState<HTMLVideoElement>(null);
 
 	useEffect(() => {
-		getCameraFeed();
-
 		statsRef.current.appendChild(stats1.dom);
 		statsRef.current.appendChild(stats2.dom);
 		statsRef.current.appendChild(stats3.dom);
-		statsRef.current.appendChild(gui.domElement);
 	}, []);
 
 	useEffect(() => {
-		initRendering();
-	}, [aspectRatio]);
-
-	const getCameraFeed = async () => {
-		if (navigator.mediaDevices.getUserMedia) {
-			try {
-				const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-				video.current.srcObject = stream;
-
-				const videoTracks = stream.getVideoTracks();
-				if (videoTracks[0]) {
-					const videoSettings = videoTracks[0].getSettings();
-					setAspectRatio(videoSettings.aspectRatio);
-				}
-			}
-			catch (e) {
-				alert('Something went wrong - couldn\'t get webcam feed');
-			}
+		if (videoElement) {
+			setTimeout(initRendering, 1000);
 		}
-	}
+	}, [videoElement]);
 
 	const initRendering = () => {
 		const canvasWidth = window.innerWidth;
@@ -138,13 +81,13 @@ function App() {
 			alpha: true,
 		});
 		renderer.current.setSize(canvasWidth, canvasHeight);
-		renderer.current.setClearColor(0xffffff, 0);
+		renderer.current.setClearColor(0x000000, 0);
 
 		renderTarget.current = new THREE.WebGLRenderTarget(canvasWidth, canvasHeight, {
 			depthBuffer: false,
 		});
 
-		const texture = new THREE.VideoTexture(video.current);
+		const texture = new THREE.VideoTexture(videoElement);
 
 		const geometry = new THREE.PlaneBufferGeometry(canvasWidth, canvasHeight, 1, 1);
 		const material = new THREE.MeshBasicMaterial({
@@ -210,10 +153,28 @@ function App() {
 		//
 
 		layers.forEach((layer) => {
+			if (layer.liveFeedLayer) {
+				if (planeFinal.current.material instanceof THREE.ShaderMaterial) {
+					planeFinal.current.material.uniforms.thresh.value = layer.thresh;
+					planeFinal.current.material.uniforms.softness.value = layer.softness;
+					planeFinal.current.material.uniforms.invert.value = layer.invert;
+					planeFinal.current.material.uniforms.opacity.value = layer.opacity;
+				}
+			}
+
 			if (layer.recording) {
 				const capturedFrame = new THREE.DataTexture(new Uint8Array(4 * window.innerWidth * window.innerHeight), window.innerWidth, window.innerHeight);
 				renderer.current.copyFramebufferToTexture(new THREE.Vector2(0, 0), capturedFrame, 0);
 				layer.frames.push(capturedFrame);
+			}
+
+			if (layer.shaderDataDirty && layer.mesh.material instanceof THREE.ShaderMaterial) {
+				layer.mesh.material.uniforms.thresh.value = layer.thresh;
+				layer.mesh.material.uniforms.softness.value = layer.softness;
+				layer.mesh.material.uniforms.invert.value = layer.invert;
+				layer.mesh.material.uniforms.opacity.value = layer.opacity;
+
+				layer.shaderDataDirty = false;
 			}
 
 			if (layer.playing) {
@@ -232,15 +193,6 @@ function App() {
 		// Render final processed image to screen
 		renderer.current.setRenderTarget(null);
 		renderer.current.render(finalScene.current, camera.current);
-		
-		// renderer.current.render(scene.current, camera.current);
-
-		if (planeFinal.current.material instanceof THREE.ShaderMaterial) {
-			planeFinal.current.material.uniforms.thresh.value = shaderValues.thresh;
-			planeFinal.current.material.uniforms.softness.value = shaderValues.softness;
-			planeFinal.current.material.uniforms.invert.value = shaderValues.invert;
-			planeFinal.current.material.uniforms.opacity.value = shaderValues.opacity;
-		}
 
 		stats1.end();
 		stats2.end();
@@ -249,47 +201,8 @@ function App() {
 		requestAnimationFrame(render);
 	}
 
-	function onStartRecording(layer: LayerData) {
-		if (layer.recording) {
-			return;
-		}
-
-		layer.playing = false;
-
-		layer.frames.forEach((frame) => {
-			frame.dispose();
-		});
-		layer.frames = [];
-
-		layer.recording = true;
-	}
-
-	function onStopRecording(layer: LayerData) {
-		if (!layer.recording) {
-			return;
-		}
-
-		layer.recording = false;
-		layer.playing = true;
-	}
-
-	function onPlay(layer: LayerData) {
-		if (layer.recording) {
-			return;
-		}
-
-		layer.playing = true;
-	}
-
-	function onPause(layer: LayerData) {
-		layer.playing = false;
-	}
-
-	function onDelete(layer: LayerData) {
-		layer.frames.forEach((frame) => {
-			frame.dispose();
-		});
-		layer.frames = [];
+	function onVideoElementSet(element: HTMLVideoElement) {
+		setVideoElement(element);
 	}
 
 	return (
@@ -297,23 +210,8 @@ function App() {
 			<canvas ref={canvas} />
 
 			<div style={{display: 'flex'}}>
-				<video ref={video} autoPlay style={{width: `${150 * aspectRatio}px`, height: '150px', position: 'fixed', left: '24px', bottom: '24px'}} />
-
-				<div style={{display: 'flex', flexDirection: 'column', marginTop: '48px'}}>
-					{layers.map((layer) => {
-						return (
-							<LayerPanel
-								key={layer.name}
-								layer={layer}
-								onStartRecording={onStartRecording}
-								onStopRecording={onStopRecording}
-								onPlay={onPlay}
-								onPause={onPause}
-								onDelete={onDelete}
-							/>
-						);
-					})}
-				</div>
+				<LiveFeed onVideoElementSet={onVideoElementSet} />
+				<LayerProperties layers={layers} />
 
 				<div ref={statsRef} />
 			</div>
