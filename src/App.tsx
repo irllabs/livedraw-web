@@ -40,6 +40,11 @@ function App() {
 	const canvas = useRef<HTMLCanvasElement>();
 	const statsRef = useRef<HTMLDivElement>();
 	
+	const currentTime = useRef<number>(0);
+	const previousFrameTime = useRef<number>(0);
+	const elapsedTime = useRef<number>(0);
+	const targetFrameTime = useRef(1000 / 35);
+
 	const renderer = useRef<THREE.WebGLRenderer>();
 	const scene = useRef<THREE.Scene>();
 	const camera = useRef<THREE.Camera>();
@@ -117,13 +122,16 @@ function App() {
 	}
 
 	const initRendering = () => {
-		const canvasWidth = 512 * aspectRatio;
-		const canvasHeight = 512;
+		const canvasWidth = window.innerWidth;
+		const canvasHeight = window.innerHeight;
 
 		scene.current = new THREE.Scene();
 		finalScene.current = new THREE.Scene();
 		finalScene.current.background = null;
 		camera.current = new THREE.OrthographicCamera(canvasWidth / -2, canvasWidth / 2, canvasHeight / 2, canvasHeight / -2, 0.1, 1000);
+
+		canvas.current.width = window.innerWidth;
+		canvas.current.height = window.innerHeight;
 
 		renderer.current = new THREE.WebGLRenderer({
 			canvas: canvas.current,
@@ -177,10 +185,21 @@ function App() {
 
 		//////////////////////
 
+		previousFrameTime.current = performance.now();
+
 		render();
 	}
 
 	const render = () => {
+		currentTime.current = performance.now();
+
+		elapsedTime.current = currentTime.current - previousFrameTime.current;
+		if (elapsedTime.current < targetFrameTime.current) {
+			requestAnimationFrame(render);
+			return;
+		}
+		previousFrameTime.current = performance.now();
+
 		stats1.begin();
 		stats2.begin();
 		stats3.begin();
@@ -192,7 +211,7 @@ function App() {
 
 		layers.forEach((layer) => {
 			if (layer.recording) {
-				const capturedFrame = new THREE.DataTexture(new Uint8Array(4 * 512 * 1.3333 * 512), 512 * 1.3333, 512);
+				const capturedFrame = new THREE.DataTexture(new Uint8Array(4 * window.innerWidth * window.innerHeight), window.innerWidth, window.innerHeight);
 				renderer.current.copyFramebufferToTexture(new THREE.Vector2(0, 0), capturedFrame, 0);
 				layer.frames.push(capturedFrame);
 			}
@@ -274,28 +293,31 @@ function App() {
 	}
 
 	return (
-		<div style={{display: 'flex'}}>
-			<video ref={video} autoPlay width={512 * aspectRatio} height={512} />
-			<canvas ref={canvas} width={512 * aspectRatio} height={512} />
+		<>
+			<canvas ref={canvas} />
 
-			<div style={{display: 'flex', flexDirection: 'column', marginTop: '48px'}}>
-				{layers.map((layer) => {
-					return (
-						<LayerPanel
-							key={layer.name}
-							layer={layer}
-							onStartRecording={onStartRecording}
-							onStopRecording={onStopRecording}
-							onPlay={onPlay}
-							onPause={onPause}
-							onDelete={onDelete}
-						/>
-					);
-				})}
+			<div style={{display: 'flex'}}>
+				<video ref={video} autoPlay style={{width: `${150 * aspectRatio}px`, height: '150px', position: 'fixed', left: '24px', bottom: '24px'}} />
+
+				<div style={{display: 'flex', flexDirection: 'column', marginTop: '48px'}}>
+					{layers.map((layer) => {
+						return (
+							<LayerPanel
+								key={layer.name}
+								layer={layer}
+								onStartRecording={onStartRecording}
+								onStopRecording={onStopRecording}
+								onPlay={onPlay}
+								onPause={onPause}
+								onDelete={onDelete}
+							/>
+						);
+					})}
+				</div>
+
+				<div ref={statsRef} />
 			</div>
-
-			<div ref={statsRef} />
-		</div>
+		</>
 	);
 }
 
