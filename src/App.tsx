@@ -67,7 +67,7 @@ function App() {
 		canvas.current.width = window.innerWidth;
 		canvas.current.height = window.innerHeight;
 
-		renderer.current = new THREE.WebGLRenderer({
+		renderer.current = new THREE.WebGL1Renderer({
 			canvas: canvas.current,
 			alpha: true,
 			preserveDrawingBuffer: true,
