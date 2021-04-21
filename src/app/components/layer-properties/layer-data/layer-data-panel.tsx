@@ -119,7 +119,7 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 					{recording && <button onClick={() => {onStopRecording(layer)}} style={{marginRight: '5px'}}>Stop Recording</button>}
 					{!playing && <button onClick={() => {onPlay(layer)}} style={{marginRight: '5px'}}>Play</button>}
 					{playing && <button onClick={() => {onPause(layer)}} style={{marginRight: '5px'}}>Pause</button>}
-					<button onClick={() => {onDelete(layer)}} style={{marginRight: '5px'}}>Delete</button>
+					<button onClick={() => {onDelete(layer)}} style={{marginRight: '5px'}}>Clear</button>
 				</div>
 
 				<label htmlFor="live-view">
