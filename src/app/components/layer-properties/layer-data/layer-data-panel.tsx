@@ -2,6 +2,8 @@ import React, { FC, useState } from 'react';
 
 import LayerData from '../../../models/layer-data';
 
+import './layer-data-panel.scss';
+
 interface LayerDataProps {
 	layer: LayerData;
 }
@@ -109,19 +111,19 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 
 	return (
 		<>
-			<div key={layer.name}>
-				<p>
-					{layer.name}
-				</p>
+			<p>
+				{layer.name}
+			</p>
 
-				<div>
-					{!recording && <button onClick={() => {onStartRecording(layer)}} style={{marginRight: '5px'}}>Record</button>}
-					{recording && <button onClick={() => {onStopRecording(layer)}} style={{marginRight: '5px'}}>Stop Recording</button>}
-					{!playing && <button onClick={() => {onPlay(layer)}} style={{marginRight: '5px'}}>Play</button>}
-					{playing && <button onClick={() => {onPause(layer)}} style={{marginRight: '5px'}}>Pause</button>}
-					<button onClick={() => {onDelete(layer)}} style={{marginRight: '5px'}}>Clear</button>
-				</div>
+			<div>
+				{!recording && <button onClick={() => {onStartRecording(layer)}} style={{marginRight: '5px'}}>Record</button>}
+				{recording && <button onClick={() => {onStopRecording(layer)}} style={{marginRight: '5px'}}>Stop Recording</button>}
+				{!playing && <button onClick={() => {onPlay(layer)}} style={{marginRight: '5px'}}>Play</button>}
+				{playing && <button onClick={() => {onPause(layer)}} style={{marginRight: '5px'}}>Pause</button>}
+				<button onClick={() => {onDelete(layer)}} style={{marginRight: '5px'}}>Clear</button>
+			</div>
 
+			<div>
 				<label htmlFor="live-view">
 					Thru
 				</label>
@@ -132,55 +134,64 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 					checked={thru}
 					onChange={onThruToggled}
 				/>
-				<br/>
+			</div>
 
-				<label htmlFor={`opacity-${layer.name}`}>
-					Opacity
-				</label>
-				<input
-					type="range"
-					min="0"
-					max="100"
-					value={opacity * 100}
-					id={`opacity-${layer.name}`}
-					onChange={onOpacityChange}
-				/>
-				<br />
-				<label htmlFor={`invert-${layer.name}`}>
-					Invert
-				</label>
-				<input
-					type="range"
-					min="0"
-					max="100"
-					value={invert * 100}
-					id={`invert-${layer.name}`}
-					onChange={onInvertChange}
-				/>
-				<br />
-				<label htmlFor={`softness-${layer.name}`}>
-					Softness
-				</label>
-				<input
-					type="range"
-					min="0"
-					max="100"
-					value={softness * 100}
-					id={`softness-${layer.name}`}
-					onChange={onSoftnessChange}
-				/>
-				<br />
-				<label htmlFor={`thresh-${layer.name}`}>
-					Thresh
-				</label>
-				<input
-					type="range"
-					min="0"
-					max="100"
-					value={thresh * 100}
-					id={`thresh-${layer.name}`}
-					onChange={onThreshChange}
-				/>
+			<div className='layer-data-panel-sliders-container'>
+				<div className='layer-data-panel-slider-container'>
+					<input
+						type="range"
+						min="0"
+						max="100"
+						value={opacity * 100}
+						id={`opacity-${layer.name}`}
+						onChange={onOpacityChange}
+					/>
+					<label htmlFor={`opacity-${layer.name}`}>
+						Opacity
+					</label>
+				</div>
+
+				<div className='layer-data-panel-slider-container'>
+					<input
+						type="range"
+						min="0"
+						max="100"
+						value={invert * 100}
+						id={`invert-${layer.name}`}
+						onChange={onInvertChange}
+					/>
+					<label htmlFor={`invert-${layer.name}`}>
+						Invert
+					</label>
+				</div>
+
+				<div className='layer-data-panel-slider-container'>
+					<input
+						type="range"
+						min="0"
+						max="100"
+						value={softness * 100}
+						id={`softness-${layer.name}`}
+						onChange={onSoftnessChange}
+					/>
+					<label htmlFor={`softness-${layer.name}`}>
+						Softness
+					</label>
+				</div>
+
+				<div className='layer-data-panel-slider-container'>
+					<input
+						type="range"
+						min="0"
+						max="100"
+						value={thresh * 100}
+						id={`thresh-${layer.name}`}
+						onChange={onThreshChange}
+					/>
+					<label htmlFor={`thresh-${layer.name}`}>
+						Thresh
+					</label>
+				</div>
 			</div>
 		</>
 	);
