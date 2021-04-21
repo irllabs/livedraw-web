@@ -12,6 +12,7 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 	const [softness, setSoftness] = useState(layer.softness);
 	const [thresh, setThresh] = useState(layer.thresh);
 	const [thru, setThru] = useState(layer.displayLiveView);
+	const [recording, setRecording] = useState(layer.recording);
 
 	function onStartRecording(layer: LayerData) {
 		if (layer.recording) {
@@ -26,6 +27,8 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 		layer.frames = [];
 
 		layer.recording = true;
+
+		setRecording(true);
 	}
 
 	function onStopRecording(layer: LayerData) {
@@ -38,6 +41,7 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 		layer.displayLiveView = false;
 
 		setThru(false);
+		setRecording(false);
 	}
 
 	function onPlay(layer: LayerData) {
@@ -105,8 +109,8 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 				</p>
 
 				<div>
-					<button onClick={() => {onStartRecording(layer)}} style={{marginRight: '5px'}}>Record</button>
-					<button onClick={() => {onStopRecording(layer)}} style={{marginRight: '5px'}}>Stop Recording</button>
+					{!recording && <button onClick={() => {onStartRecording(layer)}} style={{marginRight: '5px'}}>Record</button>}
+					{recording && <button onClick={() => {onStopRecording(layer)}} style={{marginRight: '5px'}}>Stop Recording</button>}
 					<button onClick={() => {onPlay(layer)}} style={{marginRight: '5px'}}>Play</button>
 					<button onClick={() => {onPause(layer)}} style={{marginRight: '5px'}}>Pause</button>
 					<button onClick={() => {onDelete(layer)}} style={{marginRight: '5px'}}>Delete</button>
