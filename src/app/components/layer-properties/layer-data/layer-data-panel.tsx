@@ -11,6 +11,7 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 	const [invert, setInvert] = useState(layer.invert);
 	const [softness, setSoftness] = useState(layer.softness);
 	const [thresh, setThresh] = useState(layer.thresh);
+	const [thru, setThru] = useState(layer.displayLiveView);
 
 	function onStartRecording(layer: LayerData) {
 		if (layer.recording) {
@@ -34,6 +35,9 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 
 		layer.recording = false;
 		layer.playing = true;
+		layer.displayLiveView = false;
+
+		setThru(false);
 	}
 
 	function onPlay(layer: LayerData) {
@@ -42,6 +46,9 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 		}
 
 		layer.playing = true;
+		layer.displayLiveView = false;
+
+		setThru(false);
 	}
 
 	function onPause(layer: LayerData) {
@@ -53,6 +60,13 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 			frame.dispose();
 		});
 		layer.frames = [];
+	}
+
+	function onThruToggled(event: React.ChangeEvent<HTMLInputElement>) {
+		layer.displayLiveView = event.target.checked;
+		layer.shaderDataDirty = true;
+
+		setThru(event.target.checked);
 	}
 
 	function onOpacityChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -89,14 +103,27 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 				<p>
 					{layer.name}
 				</p>
-				{!layer.liveFeedLayer &&
+
 				<div>
 					<button onClick={() => {onStartRecording(layer)}} style={{marginRight: '5px'}}>Record</button>
 					<button onClick={() => {onStopRecording(layer)}} style={{marginRight: '5px'}}>Stop Recording</button>
 					<button onClick={() => {onPlay(layer)}} style={{marginRight: '5px'}}>Play</button>
 					<button onClick={() => {onPause(layer)}} style={{marginRight: '5px'}}>Pause</button>
 					<button onClick={() => {onDelete(layer)}} style={{marginRight: '5px'}}>Delete</button>
-				</div>}
+				</div>
+
+				<label htmlFor="live-view">
+					Thru
+				</label>
+				<input
+					type="checkbox"
+					id="live-view"
+					name="live-view"
+					checked={thru}
+					onChange={onThruToggled}
+				/>
+				<br/>
+
 				<label htmlFor={`opacity-${layer.name}`}>
 					Opacity
 				</label>

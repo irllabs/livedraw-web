@@ -19,13 +19,6 @@ var stats3 = new Stats();
 stats3.showPanel(2); // Panel 1 = ms
 stats3.dom.style.cssText = 'position:absolute;top:0px;right:160px;';
 
-const shaderValues = {
-	thresh: 1,
-	softness: 1,
-	invert: 1,
-	opacity: 1,
-}
-
 function App() {
 	const canvas = useRef<HTMLCanvasElement>();
 	const statsRef = useRef<HTMLDivElement>();
@@ -40,15 +33,13 @@ function App() {
 	const camera = useRef<THREE.Camera>();
 	const renderTarget = useRef<THREE.WebGLRenderTarget>();
 	const finalScene = useRef<THREE.Scene>();
-	const planeFinal = useRef<THREE.Mesh>();
 
 	const [layers] = useState<LayerData[]>([
-		new LayerData('layer-1'),
+		new LayerData('layer-1', true),
 		new LayerData('layer-2'),
 		new LayerData('layer-3'),
 		new LayerData('layer-4'),
 		new LayerData('layer-5'),
-		new LayerData('live-feed', true),
 	]);
 	const [videoElement, setVideoElement] = useState<HTMLVideoElement>(null);
 
@@ -79,9 +70,10 @@ function App() {
 		renderer.current = new THREE.WebGLRenderer({
 			canvas: canvas.current,
 			alpha: true,
+			preserveDrawingBuffer: true,
 		});
 		renderer.current.setSize(canvasWidth, canvasHeight);
-		renderer.current.setClearColor(0x000000, 0);
+		renderer.current.setClearColor(0x000000, 1);
 
 		renderTarget.current = new THREE.WebGLRenderTarget(canvasWidth, canvasHeight, {
 			depthBuffer: false,
@@ -105,15 +97,6 @@ function App() {
 
 		////////////////////
 
-		const geometryFinal = new THREE.PlaneBufferGeometry(canvasWidth, canvasHeight, 1, 1);
-		const materialFinal = createLivedrawMaterial(renderTarget.current.texture);
-
-		planeFinal.current = new THREE.Mesh(geometryFinal, materialFinal);
-		finalScene.current.add(planeFinal.current);
-
-		planeFinal.current.position.set(1, 0, 0);
-		planeFinal.current.lookAt(new THREE.Vector3(0, 0, 0));
-
 		layers.forEach((layer, index) => {
 			layer.geometry = new THREE.PlaneBufferGeometry(canvasWidth, canvasHeight, 1, 1);
 			layer.material = createLivedrawMaterial();
@@ -125,6 +108,7 @@ function App() {
 			layer.mesh.position.set(index + 2, 0, 0);
 			layer.mesh.lookAt(0, 0, 0);
 		});
+
 
 		//////////////////////
 
@@ -153,14 +137,7 @@ function App() {
 		//
 
 		layers.forEach((layer) => {
-			if (layer.liveFeedLayer) {
-				if (planeFinal.current.material instanceof THREE.ShaderMaterial) {
-					planeFinal.current.material.uniforms.thresh.value = layer.thresh;
-					planeFinal.current.material.uniforms.softness.value = layer.softness;
-					planeFinal.current.material.uniforms.invert.value = layer.invert;
-					planeFinal.current.material.uniforms.opacity.value = layer.opacity;
-				}
-			}
+			layer.mesh.visible = layer.frames.length > 0 || layer.displayLiveView;
 
 			if (layer.recording) {
 				const capturedFrame = new THREE.DataTexture(new Uint8Array(4 * window.innerWidth * window.innerHeight), window.innerWidth, window.innerHeight);
@@ -173,6 +150,18 @@ function App() {
 				layer.mesh.material.uniforms.softness.value = layer.softness;
 				layer.mesh.material.uniforms.invert.value = layer.invert;
 				layer.mesh.material.uniforms.opacity.value = layer.opacity;
+
+				if (layer.displayLiveView) {
+					layer.playing = false;
+					layer.currentFrame = 0;
+					layer.playbackDirection = 1;
+
+					layer.mesh.material.uniforms.tex0.value = renderTarget.current.texture;
+				}
+				else {
+					// If live view is turned off - set an empty texture for a layer.
+					layer.mesh.material.uniforms.tex0.value = new THREE.Texture();
+				}
 
 				layer.shaderDataDirty = false;
 			}

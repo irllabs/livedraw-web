@@ -19,14 +19,14 @@ void main()
 	float fValue = src.r * 0.29 + src.g * 0.6 + src.b * 0.11;
 	float l1 = thresh - softness * 0.5;
 	float l2 = l1 + softness;
-	fValue = smoothstep(max(l1,0.0), min(l2, 1.0), fValue);
-	fValue = float(invert) * (1.-fValue) + (1.-float(invert))*fValue;
+	fValue = smoothstep(max(l1, 0.0), min(l2, 1.0), fValue);
+	fValue = invert * (1.0 - fValue) + (1.0 - invert) * fValue;
 
 	// Get alpha value
 	float mask = texture2D(maskTex, texCoordVarying).a;
 
 	// combine mask and threshold
-	vec4 calc = vec4(fValue * opacity, fValue * opacity, fValue * opacity, opacity);
+	vec4 calc = vec4(fValue * opacity, fValue * opacity, fValue * opacity, fValue * opacity);
 
 	// Set
 	gl_FragColor = calc;

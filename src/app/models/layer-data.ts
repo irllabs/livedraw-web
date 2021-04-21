@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 export default class LayerData {
 	public name = '';
-	public liveFeedLayer = false;
+	public displayLiveView = false;
 
 	public frames: THREE.DataTexture[] = [];
 	public recording = false;
@@ -18,8 +18,8 @@ export default class LayerData {
 	public geometry: THREE.PlaneGeometry;
 	public mesh: THREE.Mesh;
 
-	constructor(name: string, liveFeedLayer: boolean = false) {
+	constructor(name: string, displayLiveView: boolean = false) {
 		this.name = name;
-		this.liveFeedLayer = liveFeedLayer;
+		this.displayLiveView = displayLiveView;
 	}
 }
