@@ -111,7 +111,7 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 
 	return (
 		<>
-			<p>
+			<p style={{fontSize: '12px'}}>
 				{layer.name}
 			</p>
 
@@ -124,7 +124,7 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 			</div>
 
 			<div>
-				<label htmlFor="live-view">
+				<label htmlFor="live-view" style={{fontSize: '12px'}}>
 					Thru
 				</label>
 				<input
@@ -145,8 +145,9 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 						value={opacity * 100}
 						id={`opacity-${layer.name}`}
 						onChange={onOpacityChange}
+						style={{width: '50px'}}
 					/>
-					<label htmlFor={`opacity-${layer.name}`}>
+					<label htmlFor={`opacity-${layer.name}`} style={{fontSize: '12px'}}>
 						Opacity
 					</label>
 				</div>
@@ -159,8 +160,9 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 						value={invert * 100}
 						id={`invert-${layer.name}`}
 						onChange={onInvertChange}
+						style={{width: '50px'}}
 					/>
-					<label htmlFor={`invert-${layer.name}`}>
+					<label htmlFor={`invert-${layer.name}`} style={{fontSize: '12px'}}>
 						Invert
 					</label>
 				</div>
@@ -173,8 +175,9 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 						value={softness * 100}
 						id={`softness-${layer.name}`}
 						onChange={onSoftnessChange}
+						style={{width: '50px'}}
 					/>
-					<label htmlFor={`softness-${layer.name}`}>
+					<label htmlFor={`softness-${layer.name}`} style={{fontSize: '12px'}}>
 						Softness
 					</label>
 				</div>
@@ -187,8 +190,9 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 						value={thresh * 100}
 						id={`thresh-${layer.name}`}
 						onChange={onThreshChange}
+						style={{width: '50px'}}
 					/>
-					<label htmlFor={`thresh-${layer.name}`}>
+					<label htmlFor={`thresh-${layer.name}`} style={{fontSize: '12px'}}>
 						Thresh
 					</label>
 				</div>
