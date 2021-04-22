@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 import LayerData from '../../models/layer-data';
 
@@ -12,8 +12,26 @@ interface LayerPropertiesProps {
 }
 
 const LayerProperties: FC<LayerPropertiesProps> = ({layers}): JSX.Element => {
+	const [visible, setVisible] = useState(true);
+
+	useEffect(() => {
+		window.addEventListener('keydown', onKeyDown);
+
+		return () => {
+			window.removeEventListener('keydown', onKeyDown);
+		}
+	}, []);
+
+	function onKeyDown(event: KeyboardEvent) {
+		if (event.key === 'u') {
+			setVisible((prevState) => {
+				return !prevState;
+			});
+		}
+	}
+
 	return (
-		<DraggableWindow title='Layer Properties' initialPosition={{x: 24, y: 250}}>
+		<DraggableWindow title='Layer Properties' initialPosition={{x: 24, y: 250}} hidden={!visible}>
 			<div className='layer-properties-container'>
 				{layers.map((layer) => {
 					return (

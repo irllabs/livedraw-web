@@ -5,13 +5,14 @@ import './draggable-window.scss';
 
 interface DraggableWindowProps {
 	title: string;
+	hidden?: boolean;
 	initialPosition: {
 		x: number;
 		y: number;
 	}
 }
 
-const DraggableWindow: FC<DraggableWindowProps> = ({children, title, initialPosition}): JSX.Element => {
+const DraggableWindow: FC<DraggableWindowProps> = ({children, title, hidden, initialPosition}): JSX.Element => {
 	const [grabbed, setGrabbed] = useState(false);
 	const [offset, setOffset] = useState(new THREE.Vector2());
 	const [position, setPosition] = useState(new THREE.Vector2(initialPosition.x, initialPosition.y));
@@ -57,7 +58,7 @@ const DraggableWindow: FC<DraggableWindowProps> = ({children, title, initialPosi
 
 	return (
 		<div className='draggable-window-container' style={{
-			left: `${position.x}px`,
+			left: `${hidden ? '25000px' : `${position.x}px`}`,
 			top: `${position.y}px`
 		}}>
 			<div className='draggable-window-header' onMouseDown={onHeaderMouseDown}>
