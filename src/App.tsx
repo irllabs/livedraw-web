@@ -19,6 +19,8 @@ var stats3 = new Stats();
 stats3.showPanel(2); // Panel 1 = ms
 stats3.dom.style.cssText = 'position:absolute;top:0px;right:160px;';
 
+let videoElementRef: any = null;
+
 function App() {
 	const canvas = useRef<HTMLCanvasElement>();
 	const statsRef = useRef<HTMLDivElement>();
@@ -33,6 +35,7 @@ function App() {
 	const camera = useRef<THREE.Camera>();
 	const renderTarget = useRef<THREE.WebGLRenderTarget>();
 	const finalScene = useRef<THREE.Scene>();
+	const cameraFeedPlane = useRef<THREE.Mesh>();
 
 	const [layers] = useState<LayerData[]>([
 		new LayerData('layer-1', true),
@@ -48,12 +51,6 @@ function App() {
 		statsRef.current.appendChild(stats2.dom);
 		statsRef.current.appendChild(stats3.dom);
 	}, []);
-
-	useEffect(() => {
-		if (videoElement) {
-			setTimeout(initRendering, 1000);
-		}
-	}, [videoElement]);
 
 	const initRendering = () => {
 		const canvasWidth = window.innerWidth;
@@ -86,14 +83,14 @@ function App() {
 			map: texture
 		});
 
-		const plane = new THREE.Mesh(geometry, material);
-		scene.current.add(plane);
+		cameraFeedPlane.current = new THREE.Mesh(geometry, material);
+		scene.current.add(cameraFeedPlane.current);
 
 		camera.current.position.set(0, 0, 0);
 		camera.current.lookAt(new THREE.Vector3(1, 0, 0));
 
-		plane.position.set(10, 0, 0);
-		plane.lookAt(new THREE.Vector3(0, 0, 0));
+		cameraFeedPlane.current.position.set(10, 0, 0);
+		cameraFeedPlane.current.lookAt(new THREE.Vector3(0, 0, 0));
 
 		////////////////////
 
@@ -194,13 +191,31 @@ function App() {
 		setVideoElement(element);
 	}
 
+	async function onChangeCamera(label: string) {
+		const stream = await navigator.mediaDevices.getUserMedia({ video: {
+			deviceId: label
+		}});
+		videoElement.srcObject = stream;
+
+		setVideoElement(videoElementRef);
+
+		/*const texture = new THREE.VideoTexture(videoElement);
+
+		if (cameraFeedPlane.current.material instanceof THREE.MeshBasicMaterial) {
+			cameraFeedPlane.current.material.map = texture;
+			cameraFeedPlane.current.material.map.needsUpdate = true;
+		}*/
+
+		setTimeout(initRendering, 500);
+	}
+
 	return (
 		<>
 			<canvas ref={canvas} />
 
 			<div style={{display: 'flex'}}>
 				<LiveFeed onVideoElementSet={onVideoElementSet} />
-				<LayerProperties layers={layers} />
+				<LayerProperties layers={layers} onChangeCamera={onChangeCamera} />
 
 				<div ref={statsRef} />
 			</div>

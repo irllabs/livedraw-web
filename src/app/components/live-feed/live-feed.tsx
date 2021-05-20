@@ -17,9 +17,16 @@ const LiveFeed: FC<LiveFeedProps> = ({onVideoElementSet}): JSX.Element => {
 			if (navigator.mediaDevices.getUserMedia) {
 				try {
 					const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-					video.current.srcObject = stream;
+
+					let devices = await navigator.mediaDevices.enumerateDevices();
+					devices = devices.filter((device) => {
+						return device.kind === 'videoinput';
+					});
+
+					// video.current.srcObject = stream;
 	
 					const videoTracks = stream.getVideoTracks();
+					(window as any).videoTracks = devices;
 					if (videoTracks[0]) {
 						const videoSettings = videoTracks[0].getSettings();
 						setAspectRatio(videoSettings.aspectRatio);
@@ -51,7 +58,7 @@ const LiveFeed: FC<LiveFeedProps> = ({onVideoElementSet}): JSX.Element => {
 	}
 
 	return (
-		<div style={{opacity: visible ? 1 : 0}}>
+		<div style={{opacity: visible ? 1 : 0, pointerEvents: 'none'}}>
 			<DraggableWindow title='Live feed' initialPosition={{x: 24, y: 24}}>
 				<video
 					id='live-feed'

@@ -29,5 +29,5 @@ void main()
 	vec4 calc = vec4(fValue * opacity, fValue * opacity, fValue * opacity, fValue * opacity);
 
 	// Set
-	gl_FragColor = calc;
+	gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }

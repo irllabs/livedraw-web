@@ -9,9 +9,10 @@ import './layer-properties.scss';
 
 interface LayerPropertiesProps {
 	layers: LayerData[];
+	onChangeCamera: (label: string) => void;
 }
 
-const LayerProperties: FC<LayerPropertiesProps> = ({layers}): JSX.Element => {
+const LayerProperties: FC<LayerPropertiesProps> = ({layers, onChangeCamera}): JSX.Element => {
 	const [visible, setVisible] = useState(true);
 
 	useEffect(() => {
@@ -30,12 +31,24 @@ const LayerProperties: FC<LayerPropertiesProps> = ({layers}): JSX.Element => {
 		}
 	}
 
+	function handleChangeCamera(event: React.ChangeEvent<HTMLSelectElement>) {
+		onChangeCamera(event.target.value);
+	}
+
 	return (
 		<DraggableWindow title='Layer Properties' initialPosition={{x: 24, y: 250}} hidden={!visible}>
+			{<select onChange={handleChangeCamera} id="cameras" name="cameras">
+				<option key={'none'} value={'none'}>{'select camera device'}</option>
+				{(window as any).videoTracks?.map((videoTrack: MediaDeviceInfo) => {
+					return (
+						<option key={videoTrack.deviceId} value={videoTrack.deviceId}>{videoTrack.label}</option>
+					)
+				})}
+			</select>}
 			<div className='layer-properties-container'>
 				{layers.map((layer) => {
 					return (
-						<LayerDataPanel key={layer.name} layer={layer} />
+						<LayerDataPanel key={layer.name} layer={layer} onChangeCamera={onChangeCamera} />
 					);
 				})}
 			</div>

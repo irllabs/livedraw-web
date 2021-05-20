@@ -6,9 +6,10 @@ import './layer-data-panel.scss';
 
 interface LayerDataProps {
 	layer: LayerData;
+	onChangeCamera: (label: string) => void;
 }
 
-const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
+const LayerDataPanel: FC<LayerDataProps> = ({layer, onChangeCamera}): JSX.Element => {
 	const [opacity, setOpacity] = useState(layer.opacity);
 	const [invert, setInvert] = useState(layer.invert);
 	const [softness, setSoftness] = useState(layer.softness);
@@ -77,6 +78,14 @@ const LayerDataPanel: FC<LayerDataProps> = ({layer}): JSX.Element => {
 	function onThruToggled(event: React.ChangeEvent<HTMLInputElement>) {
 		layer.displayLiveView = event.target.checked;
 		layer.shaderDataDirty = true;
+
+		if (!event.target.checked) {
+			if (layer.frames.length > 0) {
+				layer.playing = true;
+				layer.playbackDirection = 1;
+				layer.currentFrame = 0;
+			}
+		}
 
 		setThru(event.target.checked);
 	}
